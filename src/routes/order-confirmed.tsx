@@ -27,7 +27,7 @@ const methodLabel: Record<"card" | "paypal" | "mpesa", string> = {
 };
 
 function OrderConfirmed() {
-  const { ref, method } = Route.useSearch();
+  const { ref, method } = Route.useSearch() as Search;
   return (
     <SiteChrome>
       <div className="mx-auto max-w-2xl px-6 py-40 text-center">
