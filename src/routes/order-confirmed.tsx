@@ -20,7 +20,7 @@ export const Route = createFileRoute("/order-confirmed")({
   component: OrderConfirmed,
 });
 
-const methodLabel = {
+const methodLabel: Record<"card" | "paypal" | "mpesa", string> = {
   card: "Card",
   paypal: "PayPal",
   mpesa: "M-Pesa",
