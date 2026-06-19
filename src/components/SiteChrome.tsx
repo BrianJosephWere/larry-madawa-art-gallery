@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/artworks";
+import { toast } from "sonner";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 function Nav() {
   const { count, setOpen } = useCart();
@@ -99,17 +101,13 @@ function CartDrawer() {
                   />
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <h4 className="font-display text-lg italic leading-tight">
-                        {item.title}
-                      </h4>
+                      <h4 className="font-display text-lg italic leading-tight">{item.title}</h4>
                       <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                         {item.medium}
                       </p>
                     </div>
                     <div className="flex items-end justify-between">
-                      <span className="font-mono text-xs">
-                        {formatPrice(item.price)}
-                      </span>
+                      <span className="font-mono text-xs">{formatPrice(item.price)}</span>
                       <button
                         onClick={() => remove(item.slug)}
                         className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-destructive"
@@ -129,9 +127,7 @@ function CartDrawer() {
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
               Subtotal
             </span>
-            <span className="font-display text-2xl">
-              {formatPrice(subtotal)}
-            </span>
+            <span className="font-display text-2xl">{formatPrice(subtotal)}</span>
           </div>
           <Link
             to="/checkout"
@@ -152,6 +148,45 @@ function CartDrawer() {
 }
 
 function Footer() {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!email.trim() || !email.includes("@")) return;
+
+    setSubmitting(true);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.from("newsletter_signups").insert({ email: email.trim() });
+
+        if (error) {
+          if (error.code === "23505") {
+            toast.success("You are already subscribed to the archive.");
+          } else {
+            throw error;
+          }
+        } else {
+          toast.success("Subscribed successfully! Welcome to the archive.");
+          setEmail("");
+        }
+      } catch (err) {
+        console.error("Newsletter signup error:", err);
+        const message =
+          err instanceof Error ? err.message : "Failed to subscribe. Please try again.";
+        toast.error(message);
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      // Simulate submission if Supabase is not configured
+      await new Promise((r) => setTimeout(r, 600));
+      toast.success("Subscribed successfully! Welcome to the archive (demo).");
+      setEmail("");
+      setSubmitting(false);
+    }
+  };
+
   return (
     <footer className="border-t border-border px-6 py-24">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-16 md:flex-row md:justify-between">
@@ -160,17 +195,21 @@ function Footer() {
             Newsletter
           </p>
           <h4 className="mb-6 font-display text-3xl italic">Join the archive</h4>
-          <form
-            className="flex border-b border-border"
-            onSubmit={(e) => e.preventDefault()}
-          >
+          <form className="flex border-b border-border" onSubmit={handleSubmit}>
             <input
               type="email"
               required
-              placeholder="Email Address"
-              className="flex-1 bg-transparent py-2 font-mono text-[10px] uppercase outline-none placeholder:text-muted-foreground/40"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={submitting}
+              placeholder={submitting ? "Submitting..." : "Email Address"}
+              className="flex-1 bg-transparent py-2 font-mono text-[10px] uppercase outline-none placeholder:text-muted-foreground/40 disabled:opacity-50"
             />
-            <button className="px-4 font-mono text-[10px] uppercase tracking-widest transition-colors hover:text-primary">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 font-mono text-[10px] uppercase tracking-widest transition-colors hover:text-primary disabled:opacity-50"
+            >
               Submit
             </button>
           </form>

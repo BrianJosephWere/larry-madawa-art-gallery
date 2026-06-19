@@ -43,22 +43,20 @@ function About() {
             </h1>
             <div className="mt-12 space-y-6 text-sm leading-relaxed text-muted-foreground">
               <p>
-                Larry Madawa is a contemporary portrait painter working between
-                Nairobi and Lagos. His large-scale oil portraits reimagine the
-                visual grammar of classical European portraiture by placing
-                subjects from the African diaspora into postures of sovereignty,
-                inheritance, and quiet authority.
+                Larry Madawa is a contemporary portrait painter working between Nairobi and Lagos.
+                His large-scale oil portraits reimagine the visual grammar of classical European
+                portraiture by placing subjects from the African diaspora into postures of
+                sovereignty, inheritance, and quiet authority.
               </p>
               <p>
-                Trained at the Kenyatta University School of Visual Arts and the
-                Slade in London, Madawa works exclusively in oil on linen, often
-                incorporating gold leaf and hand-painted damask backgrounds drawn
-                from West African and Edwardian textile traditions.
+                Trained at the Kenyatta University School of Visual Arts and the Slade in London,
+                Madawa works exclusively in oil on linen, often incorporating gold leaf and
+                hand-painted damask backgrounds drawn from West African and Edwardian textile
+                traditions.
               </p>
               <p>
-                His work has been shown at Circle Art Gallery, Gallery 1957, and
-                Gagosian, and is held in private collections across Kenya, the
-                United Kingdom, and the United States.
+                His work has been shown at Circle Art Gallery, Gallery 1957, and Gagosian, and is
+                held in private collections across Kenya, the United Kingdom, and the United States.
               </p>
             </div>
 
@@ -78,9 +76,8 @@ function About() {
             Statement
           </p>
           <blockquote className="font-display text-3xl italic leading-tight md:col-span-9 md:text-5xl">
-            “Portraiture is the slowest argument I know how to make. Each face I
-            paint is a record — that we were here, that we were regal, that the
-            frame has always belonged to us.”
+            “Portraiture is the slowest argument I know how to make. Each face I paint is a record —
+            that we were here, that we were regal, that the frame has always belonged to us.”
           </blockquote>
         </div>
       </section>

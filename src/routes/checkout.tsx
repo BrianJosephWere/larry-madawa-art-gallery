@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { SiteChrome } from "@/components/SiteChrome";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/artworks";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -27,10 +28,7 @@ function Checkout() {
   const shipping = items.length > 0 ? 450 : 0;
   const total = subtotal + shipping;
 
-  const orderRef = useMemo(
-    () => `LMW-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
-    [],
-  );
+  const orderRef = useMemo(() => `LMW-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,8 +60,54 @@ function Checkout() {
     }
 
     setSubmitting(true);
-    // Simulate processing
-    await new Promise((r) => setTimeout(r, 1100));
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: orderData, error: orderError } = await supabase
+          .from("orders")
+          .insert({
+            order_ref: orderRef,
+            email,
+            name: String(form.get("name") || "").trim(),
+            address: String(form.get("address") || "").trim(),
+            city: String(form.get("city") || "").trim(),
+            country: String(form.get("country") || "").trim(),
+            payment_method: method,
+            subtotal,
+            shipping,
+            total,
+            status: "pending",
+          })
+          .select()
+          .single();
+
+        if (orderError) throw orderError;
+        if (!orderData) throw new Error("Failed to save order.");
+
+        const orderItems = items.map((item) => ({
+          order_id: orderData.id,
+          artwork_slug: item.slug,
+          price: item.price,
+        }));
+
+        const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+
+        if (itemsError) throw itemsError;
+      } catch (err) {
+        console.error("Order creation error:", err);
+        const message =
+          err instanceof Error
+            ? err.message
+            : "An error occurred saving the order. Please try again.";
+        setError(message);
+        setSubmitting(false);
+        return;
+      }
+    } else {
+      // Simulate processing if Supabase is not configured
+      await new Promise((r) => setTimeout(r, 1100));
+    }
+
     setSubmitting(false);
     clear();
     navigate({
@@ -76,12 +120,8 @@ function Checkout() {
     return (
       <SiteChrome>
         <div className="mx-auto max-w-2xl px-6 py-40 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">
-            Checkout
-          </p>
-          <h1 className="mt-6 font-display text-5xl italic">
-            Your cart is empty
-          </h1>
+          <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">Checkout</p>
+          <h1 className="mt-6 font-display text-5xl italic">Your cart is empty</h1>
           <p className="mt-4 text-sm text-muted-foreground">
             Begin by selecting a work from the archive.
           </p>
@@ -103,20 +143,14 @@ function Checkout() {
           <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">
             Acquisition / {orderRef}
           </p>
-          <h1 className="mt-6 font-display text-5xl italic md:text-7xl">
-            Checkout
-          </h1>
+          <h1 className="mt-6 font-display text-5xl italic md:text-7xl">Checkout</h1>
         </div>
       </section>
 
       <section className="px-6 pb-32">
         <div className="mx-auto grid max-w-[1400px] gap-16 lg:grid-cols-12">
           {/* Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-12 lg:col-span-7"
-            noValidate
-          >
+          <form onSubmit={handleSubmit} className="space-y-12 lg:col-span-7" noValidate>
             <Fieldset legend="Contact">
               <Field name="email" label="Email" type="email" required />
               <Field name="name" label="Full name" required />
@@ -166,7 +200,13 @@ function Checkout() {
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <Field name="cardExp" label="Expiry (MM/YY)" placeholder="12/27" required />
-                      <Field name="cardCvc" label="CVC" placeholder="123" inputMode="numeric" required />
+                      <Field
+                        name="cardCvc"
+                        label="CVC"
+                        placeholder="123"
+                        inputMode="numeric"
+                        required
+                      />
                     </div>
                   </div>
                 )}
@@ -177,7 +217,8 @@ function Checkout() {
                     </p>
                     <p className="mt-2 text-sm">
                       You'll be redirected to PayPal to authorize the payment of{" "}
-                      <span className="text-primary">{formatPrice(total)}</span> after placing the order.
+                      <span className="text-primary">{formatPrice(total)}</span> after placing the
+                      order.
                     </p>
                   </div>
                 )}
@@ -189,10 +230,7 @@ function Checkout() {
                       </p>
                       <p className="mt-2 text-sm">
                         Enter your Safaricom number. You'll receive a prompt for{" "}
-                        <span className="text-primary">
-                          {formatPrice(total, "KES")}
-                        </span>
-                        .
+                        <span className="text-primary">{formatPrice(total, "KES")}</span>.
                       </p>
                     </div>
                     <Field
@@ -218,9 +256,7 @@ function Checkout() {
               disabled={submitting}
               className="w-full border border-primary bg-primary py-5 font-mono text-[11px] uppercase tracking-[0.3em] text-primary-foreground transition-all hover:bg-transparent hover:text-primary disabled:opacity-60"
             >
-              {submitting
-                ? "Processing…"
-                : `Place Order · ${formatPrice(total)}`}
+              {submitting ? "Processing…" : `Place Order · ${formatPrice(total)}`}
             </button>
             <p className="text-center font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               Demo checkout — no real payment is processed.
@@ -243,15 +279,11 @@ function Checkout() {
                       className="h-24 w-20 flex-shrink-0 object-cover ring-1 ring-border"
                     />
                     <div className="flex-1">
-                      <h3 className="font-display text-lg italic leading-tight">
-                        {i.title}
-                      </h3>
+                      <h3 className="font-display text-lg italic leading-tight">{i.title}</h3>
                       <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                         {i.medium}
                       </p>
-                      <p className="mt-3 font-mono text-xs">
-                        {formatPrice(i.price)}
-                      </p>
+                      <p className="mt-3 font-mono text-xs">{formatPrice(i.price)}</p>
                     </div>
                   </li>
                 ))}
@@ -259,11 +291,7 @@ function Checkout() {
               <dl className="mt-6 space-y-2 border-t border-border pt-6 font-mono text-xs">
                 <Line label="Subtotal" value={formatPrice(subtotal)} />
                 <Line label="Crating & shipping" value={formatPrice(shipping)} />
-                <Line
-                  label="Total"
-                  value={formatPrice(total)}
-                  emphasis
-                />
+                <Line label="Total" value={formatPrice(total)} emphasis />
                 {method === "mpesa" && (
                   <p className="pt-2 text-right text-muted-foreground">
                     ≈ {formatPrice(total, "KES")}
@@ -325,20 +353,10 @@ function Field({
   );
 }
 
-function Line({
-  label,
-  value,
-  emphasis,
-}: {
-  label: string;
-  value: string;
-  emphasis?: boolean;
-}) {
+function Line({ label, value, emphasis }: { label: string; value: string; emphasis?: boolean }) {
   return (
     <div
-      className={`flex justify-between ${
-        emphasis ? "border-t border-border pt-3 text-base" : ""
-      }`}
+      className={`flex justify-between ${emphasis ? "border-t border-border pt-3 text-base" : ""}`}
     >
       <dt className="uppercase tracking-widest text-muted-foreground">{label}</dt>
       <dd className={emphasis ? "font-display text-2xl not-italic text-foreground" : ""}>

@@ -12,14 +12,13 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
+import { Toaster } from "sonner";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
-          404
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">404</p>
         <h1 className="mt-6 font-display text-6xl italic">Page not found</h1>
         <p className="mt-4 text-sm text-muted-foreground">
           The work you're looking for has been moved or never existed.
@@ -132,6 +131,21 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <Outlet />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "var(--card)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              borderRadius: "0px",
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+            },
+          }}
+        />
       </CartProvider>
     </QueryClientProvider>
   );

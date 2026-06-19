@@ -1,9 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteChrome } from "@/components/SiteChrome";
-import { artworks, formatPrice } from "@/lib/artworks";
+import { fetchArtworks, formatPrice } from "@/lib/artworks";
 import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/works")({
+  loader: async () => {
+    const list = await fetchArtworks();
+    return { artworks: list };
+  },
   head: () => ({
     meta: [
       { title: "Works — Larry Madawa" },
@@ -15,8 +19,7 @@ export const Route = createFileRoute("/works")({
       { property: "og:title", content: "Works — Larry Madawa" },
       {
         property: "og:description",
-        content:
-          "The current index of available oil portraits by Larry Madawa.",
+        content: "The current index of available oil portraits by Larry Madawa.",
       },
     ],
   }),
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/works")({
 });
 
 function Works() {
+  const { artworks } = Route.useLoaderData();
   const { add, setOpen } = useCart();
   return (
     <SiteChrome>
@@ -32,12 +36,10 @@ function Works() {
           <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">
             The Archive
           </p>
-          <h1 className="mt-6 font-display text-6xl italic md:text-8xl">
-            Available Works
-          </h1>
+          <h1 className="mt-6 font-display text-6xl italic md:text-8xl">Available Works</h1>
           <p className="mt-8 max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Each work is a unique oil painting on linen or canvas, signed and
-            documented. Shipping and crating arranged from the studio worldwide.
+            Each work is a unique oil painting on linen or canvas, signed and documented. Shipping
+            and crating arranged from the studio worldwide.
           </p>
         </div>
       </section>
@@ -87,9 +89,7 @@ function Works() {
                 </div>
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <span className="block font-mono text-[10px] text-primary">
-                      {w.index}
-                    </span>
+                    <span className="block font-mono text-[10px] text-primary">{w.index}</span>
                     <Link
                       to="/works/$slug"
                       params={{ slug: w.slug }}

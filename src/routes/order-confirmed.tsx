@@ -7,15 +7,10 @@ export const Route = createFileRoute("/order-confirmed")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     ref: typeof s.ref === "string" ? s.ref : undefined,
     method:
-      s.method === "card" || s.method === "paypal" || s.method === "mpesa"
-        ? s.method
-        : undefined,
+      s.method === "card" || s.method === "paypal" || s.method === "mpesa" ? s.method : undefined,
   }),
   head: () => ({
-    meta: [
-      { title: "Order Confirmed — Larry Madawa" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Order Confirmed — Larry Madawa" }, { name: "robots", content: "noindex" }],
   }),
   component: OrderConfirmed,
 });
@@ -34,12 +29,10 @@ function OrderConfirmed() {
         <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">
           Acquisition Confirmed
         </p>
-        <h1 className="mt-6 font-display text-5xl italic md:text-7xl">
-          Thank you.
-        </h1>
+        <h1 className="mt-6 font-display text-5xl italic md:text-7xl">Thank you.</h1>
         <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-          Your order has been received. The studio will reach out within 48
-          hours to coordinate crating, shipping, and documentation.
+          Your order has been received. The studio will reach out within 48 hours to coordinate
+          crating, shipping, and documentation.
         </p>
 
         <dl className="mx-auto mt-12 max-w-sm divide-y divide-border border-y border-border font-mono text-xs">

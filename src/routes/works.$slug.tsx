@@ -1,13 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteChrome } from "@/components/SiteChrome";
-import { artworks, formatPrice, getArtwork } from "@/lib/artworks";
+import { fetchArtwork, fetchArtworks, formatPrice } from "@/lib/artworks";
 import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/works/$slug")({
-  loader: ({ params }) => {
-    const work = getArtwork(params.slug);
+  loader: async ({ params }) => {
+    const work = await fetchArtwork(params.slug);
     if (!work) throw notFound();
-    return { work };
+    const list = await fetchArtworks();
+    const related = list.filter((a) => a.slug !== work.slug).slice(0, 3);
+    return { work, related };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -31,9 +33,7 @@ export const Route = createFileRoute("/works/$slug")({
   notFoundComponent: () => (
     <SiteChrome>
       <div className="px-6 py-40 text-center">
-        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
-          404
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">404</p>
         <h1 className="mt-4 font-display text-5xl italic">Work not found</h1>
         <Link
           to="/works"
@@ -61,10 +61,9 @@ export const Route = createFileRoute("/works/$slug")({
 });
 
 function WorkDetail() {
-  const { work } = Route.useLoaderData();
+  const { work, related } = Route.useLoaderData();
   const { add, setOpen, items } = useCart();
   const inCart = items.some((i) => i.slug === work.slug);
-  const related = artworks.filter((a) => a.slug !== work.slug).slice(0, 3);
 
   return (
     <SiteChrome>
@@ -146,12 +145,7 @@ function WorkDetail() {
           </h2>
           <div className="grid gap-10 md:grid-cols-3">
             {related.map((r) => (
-              <Link
-                key={r.slug}
-                to="/works/$slug"
-                params={{ slug: r.slug }}
-                className="group"
-              >
+              <Link key={r.slug} to="/works/$slug" params={{ slug: r.slug }} className="group">
                 <div className="mb-4 aspect-[3/4] overflow-hidden ring-1 ring-border transition-all group-hover:ring-primary/50">
                   <img
                     src={r.image}

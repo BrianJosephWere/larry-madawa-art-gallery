@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export type CartItem = {
   slug: string;
@@ -39,7 +32,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setItems(JSON.parse(raw));
-    } catch {}
+    } catch (e) {
+      console.warn("Failed to load cart from localStorage:", e);
+    }
     setHydrated(true);
   }, []);
 
@@ -47,7 +42,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {}
+    } catch (e) {
+      console.warn("Failed to save cart to localStorage:", e);
+    }
   }, [items, hydrated]);
 
   const value = useMemo<CartContextValue>(() => {

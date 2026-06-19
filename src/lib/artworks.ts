@@ -4,6 +4,7 @@ import work3 from "@/assets/work-3.jpg";
 import work4 from "@/assets/work-4.jpg";
 import work5 from "@/assets/work-5.jpg";
 import work6 from "@/assets/work-6.jpg";
+import { supabase, isSupabaseConfigured } from "./supabase";
 
 export type Artwork = {
   slug: string;
@@ -99,8 +100,76 @@ export const artworks: Artwork[] = [
   },
 ];
 
-export const getArtwork = (slug: string) =>
-  artworks.find((a) => a.slug === slug);
+export const getArtwork = (slug: string) => artworks.find((a) => a.slug === slug);
+
+export async function fetchArtworks(): Promise<Artwork[]> {
+  if (!isSupabaseConfigured || !supabase) {
+    console.log("Using local artworks (Supabase not configured)");
+    return artworks;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("artworks")
+      .select("*")
+      .order("index_val", { ascending: true });
+
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      console.log("Using local artworks (Database empty)");
+      return artworks;
+    }
+
+    return data.map((row) => ({
+      slug: row.slug,
+      index: row.index_val,
+      title: row.title,
+      medium: row.medium,
+      year: row.year,
+      dimensions: row.dimensions,
+      price: row.price,
+      image: row.image_url,
+      description: row.description,
+      edition: row.edition || undefined,
+    }));
+  } catch (err) {
+    console.error("Error fetching artworks from Supabase, falling back to local:", err);
+    return artworks;
+  }
+}
+
+export async function fetchArtwork(slug: string): Promise<Artwork | null> {
+  if (!isSupabaseConfigured || !supabase) {
+    return artworks.find((a) => a.slug === slug) || null;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("artworks")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return artworks.find((a) => a.slug === slug) || null;
+    }
+
+    return {
+      slug: data.slug,
+      index: data.index_val,
+      title: data.title,
+      medium: data.medium,
+      year: data.year,
+      dimensions: data.dimensions,
+      price: data.price,
+      image: data.image_url,
+      description: data.description,
+      edition: data.edition || undefined,
+    };
+  } catch (err) {
+    console.error(`Error fetching artwork ${slug} from Supabase, falling back to local:`, err);
+    return artworks.find((a) => a.slug === slug) || null;
+  }
+}
 
 export const formatPrice = (amount: number, currency: "USD" | "KES" = "USD") => {
   if (currency === "KES") {

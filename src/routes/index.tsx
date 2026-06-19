@@ -1,10 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteChrome } from "@/components/SiteChrome";
-import { artworks, formatPrice } from "@/lib/artworks";
+import { fetchArtworks, formatPrice } from "@/lib/artworks";
 import { useCart } from "@/lib/cart";
 import hero from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const list = await fetchArtworks();
+    return { artworks: list };
+  },
   head: () => ({
     meta: [
       { title: "Larry Madawa — Contemporary Portraiture" },
@@ -30,6 +34,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { artworks } = Route.useLoaderData();
   const featured = artworks.slice(0, 4);
   const { add, setOpen } = useCart();
 
@@ -63,8 +68,8 @@ function Home() {
           </h1>
           <div className="flex flex-col gap-8 md:flex-row md:items-end">
             <p className="max-w-md text-pretty text-sm leading-relaxed text-muted-foreground">
-              Exploring the intersection of pre-colonial regal aesthetics and
-              contemporary African identity through large-scale oil portraiture.
+              Exploring the intersection of pre-colonial regal aesthetics and contemporary African
+              identity through large-scale oil portraiture.
             </p>
             <Link
               to="/works"
@@ -83,17 +88,12 @@ function Home() {
             <h2 className="font-mono text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
               Works / 2024 Index
             </h2>
-            <span className="font-display text-2xl italic">
-              New Acquisitions
-            </span>
+            <span className="font-display text-2xl italic">New Acquisitions</span>
           </div>
 
           <div className="grid grid-cols-1 gap-x-12 gap-y-32 md:grid-cols-2">
             {featured.map((w, i) => (
-              <div
-                key={w.slug}
-                className={`group ${i % 2 === 1 ? "md:mt-32" : ""}`}
-              >
+              <div key={w.slug} className={`group ${i % 2 === 1 ? "md:mt-32" : ""}`}>
                 <div className="relative mb-6 aspect-[3/4] overflow-hidden ring-1 ring-border transition-all duration-700 group-hover:ring-primary/50">
                   <Link to="/works/$slug" params={{ slug: w.slug }}>
                     <img
@@ -125,9 +125,7 @@ function Home() {
                 </div>
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="mb-2 block font-mono text-[10px] text-primary">
-                      {w.index}
-                    </span>
+                    <span className="mb-2 block font-mono text-[10px] text-primary">{w.index}</span>
                     <Link
                       to="/works/$slug"
                       params={{ slug: w.slug }}
@@ -163,9 +161,8 @@ function Home() {
             On The Work
           </p>
           <blockquote className="font-display text-3xl italic leading-tight md:col-span-9 md:text-5xl">
-            “I paint the people who have been historically left outside the
-            frame — not as protest, but as record. The frame has always belonged
-            to us.”
+            “I paint the people who have been historically left outside the frame — not as protest,
+            but as record. The frame has always belonged to us.”
             <footer className="mt-8 font-mono text-[10px] uppercase tracking-[0.3em] not-italic text-muted-foreground">
               — Larry Madawa
             </footer>

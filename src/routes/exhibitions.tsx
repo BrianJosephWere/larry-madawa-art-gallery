@@ -7,8 +7,7 @@ export const Route = createFileRoute("/exhibitions")({
       { title: "Exhibitions — Larry Madawa" },
       {
         name: "description",
-        content:
-          "Current and upcoming exhibitions of Larry Madawa's contemporary portraiture.",
+        content: "Current and upcoming exhibitions of Larry Madawa's contemporary portraiture.",
       },
       { property: "og:title", content: "Exhibitions — Larry Madawa" },
     ],
@@ -59,12 +58,8 @@ function Exhibitions() {
     <SiteChrome>
       <section className="px-6 pb-12 pt-24">
         <div className="mx-auto max-w-[1600px]">
-          <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">
-            Programme
-          </p>
-          <h1 className="mt-6 font-display text-6xl italic md:text-8xl">
-            Exhibitions
-          </h1>
+          <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary">Programme</p>
+          <h1 className="mt-6 font-display text-6xl italic md:text-8xl">Exhibitions</h1>
         </div>
       </section>
 
